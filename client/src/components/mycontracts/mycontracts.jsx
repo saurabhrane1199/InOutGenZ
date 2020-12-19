@@ -1,8 +1,10 @@
 import React, { Component } from 'react'
 import './mycontracts.styles.scss'
+import PropTypes from 'prop-types'
+import {drizzleConnect} from '@drizzle/react-plugin';
 
-const TableRow = ({ key,index, policy }) => (
-    <tr>
+const TableRow = ({index, policy }) => 
+(<tr>
         <td>{index + 1}</td>
         <td>{policy[3]}</td>
         <td>{policy[4]}</td>
@@ -14,13 +16,10 @@ const TableRow = ({ key,index, policy }) => (
         <td>{policy[9]}</td>
         <td>{policy[10]}</td>
         <td>{policy[11]}</td>
-    </tr>
-
-)
+    </tr>)
 
 function convertUnixToDate(epoch){
     let d = new Date(epoch*1000)
-    console.log(d)
     return d.toLocaleDateString()
 
 }
@@ -30,45 +29,51 @@ function convertUnixToDate(epoch){
 
 class MyContracts extends Component {
 
-    getData() {
-        this.props.drizzle.contracts.genz.methods.getPolicyUser()
+    constructor(props,context) {
+        super(props);
+        this.state = {
+            policies: []
+        }
+        this.contracts = context.drizzle.contracts
+    }
+
+
+    
+    componentDidMount() {
+        let userPolicies = []
+        
+        console.log(this.contracts)
+        this.contracts.genz.methods.getPolicyUser()
             .call()
             .then(res => {
-                let userPolicies = []
+                
                 res.forEach(item => {
-                    this.props.drizzle.contracts.genz.methods.getPolicyDetails(item)
+                    this.contracts.genz.methods.getPolicyDetails(item)
                         .call()
                         .then(policyDetails => {
-                            userPolicies.push(policyDetails)
+
+                            this.setState(prevState => ({
+                                policies: [ ...prevState.policies,policyDetails ],
+                            })) 
+
+                            
                         })
 
                 });
-                this.setState({ policies: userPolicies })
-            });
-
+                
+                
+            })
+             
+            
     }
-
-    constructor(props) {
-        super(props);
-        this.state = {
-            policies: null
-        }
-    }
-
-    componentDidMount() {
-        this.getData()
-
-    }
+       
 
     render() {
-        if (this.state.policies === null) {
+            // return (<h5>{this.props.accounts[0]}</h5>)
+        if ( this.state.policies.length==0) {
             return <div>Loading.....</div>
         }
-        //p.user,p.cover,p.amtCover,p.location,p.premium,p.area,p.startTime,p.endTime,p.coverageAmount,p.forFlood,p.cropId,p.state
         else {
-            console.log(this.state.policies)
-            const policies = this.state.policies
-            console.log(policies)
             return (
                 <div className="table-wrapper">
                     <table>
@@ -88,13 +93,7 @@ class MyContracts extends Component {
                         </thead>
                         <tbody>
                             {
-                                policies.map((policy, idx) =>
-                                    (
-                                        <TableRow key={idx} index={idx} policy={policy} />
-
-                                    ))
-
-
+                                this.state.policies.map( (policy, index) => <TableRow index={index} policy={policy}/>)
                             }
                         </tbody>
                     </table>
@@ -104,7 +103,8 @@ class MyContracts extends Component {
     }
 }
 
+MyContracts.contextTypes ={
+    drizzle : PropTypes.object
+}
 
-
-
-export default MyContracts
+export default drizzleConnect(MyContracts,mapStateToProps);
