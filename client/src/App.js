@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import SignInSignUpPage from './pages/onboarding/signInsignUp'
 import { Route, Switch, Redirect } from 'react-router-dom'
 import CreatePolicy from './components/policy_creation/policy_new'
+import MyContracts from './components/mycontracts/mycontracts'
 import KYC from './components/kyc/kyc'
 import "./App.css";
 // import { Switch } from "@material-ui/core";
@@ -13,7 +14,16 @@ import FarmerDashboard from './pages/FarmerDashboard/farmerDashBoard.jsx'
 import {connect} from 'react-redux'
 
 
+const renderForwarding = (currentUser) => {
+    if(currentUser==null){
 
+    }else if(!currentUser.kyc){
+
+    }
+    else{
+
+    }
+}
 
 
 class App extends Component {
@@ -68,18 +78,57 @@ class App extends Component {
     }
     else {
       return (
-        <Switch>
-          {/* <Route path='/signin' exact component={ () => <SignInSignUpPage />} /> */}
-          <Route path='/' exact component={FarmerDashboard}/>
+        // <Switch>
+        //   <Route path='/' exact/>
+        //   <Route path='/signin' exact component={SignInSignUpPage}/>
+        //   <Route 
+        //       path='/kyc' exact 
+        //       render={() => this.props.currentUser ? 
+              
+        //       <KYC
+        //       drizzle = {this.props.drizzle}
+        //       drizzleState = {this.state.drizzleState}/> : <Redirect to='/signin'/> }
+        //   />
+
+
+        // </Switch>
+        
+        
+        
+        
+        
+        
+        
+        <Switch>          
+          <Route path='/db' exact
+          render={ () => 
+            <FarmerDashboard
+              drizzle = {this.props.drizzle}
+              drizzleState = {this.state.drizzleState}/>
+            }/>
+
+
+
+          {/* <Route path='/signin' exact component={ () => <SignInSignUpPage />} /> */}  
+          {/* <Route path='/' exact component={MyContracts}/> */}
           
           {/* <Route 
-              path='/' exact 
+              path='/kyc' exact 
               render={() => this.props.currentUser ? 
               
               <KYC
               drizzle = {this.props.drizzle}
               drizzleState = {this.state.drizzleState}/>: <Redirect to='/signin'/> }
           /> */}
+
+          <Route 
+              path='/' exact 
+              render={() =>  
+              
+              <KYC
+              drizzle = {this.props.drizzle}
+              drizzleState = {this.state.drizzleState}/> }
+          />
           
           <Route exact path='/signin' render={
             () => this.props.currentUser ? 
