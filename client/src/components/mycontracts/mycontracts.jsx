@@ -4,6 +4,16 @@ import PropTypes from 'prop-types'
 import {drizzleConnect} from '@drizzle/react-plugin';
 import {Modal,Button} from 'react-bootstrap'
 
+
+const PolicyAction = ({policyStatus,handleClaim, id}) => {
+    if(policyStatus == 1){
+        return <button className="claimButton" onClick={() => handleClaim(id)}>Claim</button>
+    }
+    else{
+        return <button className="claimButton" style={{backgroundColor:"#e80f00", color:"white", width:"150px"}}>Policy Claimed</button>
+    }
+}
+
 const TableRow = ({policy, handleClaim }) =>{
 
     const [show, setShow] = useState(false);
@@ -23,8 +33,17 @@ return (
         <td>{policy[4][5]}</td>
         <td>{policy[4][6]}</td>
         <td>{policy[5]}</td>
-        <td>{policy[6]}</td>
-        <td><button onClick={() => handleClaim(policy[4][0])}>Claim</button><button onClick={handleShow}>Info</button></td>
+        <td>{policy[6]==0 ? "Open" : "Closed"}</td>
+        <td style={{textAlign:"center"}}>
+            {policy[6]==1 ?
+            <PolicyAction policyStatus={policy[7]} handleClaim={handleClaim} id={policy[4][0]} />
+            : ''}
+            <i 
+                className="fa fa-info-circle"
+                onClick={handleShow}
+                style = {{fontSize:"20px",color:"#8ad0ff",cursor:"pointer"}}
+            />
+        </td>
         {/* <td>{policy[11]}</td> */}
     </tr>
     <Modal show={show} size="lg" onHide={handleClose} centered>
@@ -32,7 +51,8 @@ return (
       <Modal.Title>Investment Details</Modal.Title>
     </Modal.Header>
     <Modal.Body >
-        <table style={{width:"100%"}}>
+        {
+            policy[1].length>0 ? (<table style={{width:"100%"}}>
             <thead style={{textAlign:"center"}}>
                 <th>Investor</th>
                 <th>Amount Invested</th>
@@ -45,9 +65,14 @@ return (
                             <td>{policy[2][index]}</td>
                         </tr>
                     )
-                )}
+                )}  
             </tbody>
-        </table>
+        </table>) : <h4>No Investments found</h4>  
+
+
+
+        }
+        
 
 
     </Modal.Body>
@@ -65,14 +90,6 @@ function convertUnixToDate(epoch){
 
 }
 
-function convertErrorToJson(error){
-    const strerror = error
-    console.log(strerror)
-    return typeof(strerror)
-}
-
-
-
 
 class MyContracts extends Component {
 
@@ -88,15 +105,18 @@ class MyContracts extends Component {
         console.log(`Id Clicked : ${id}`)
         this.contracts.genz.methods.claim(id)
         .send({from : this.props.accounts[0]})
-        .then(res => console.log(`Success ${res}`)).catch(err => alert(`Error Occured${err}`))
+        .then(res => {
+            console.log(`Success ${res}`)
+            window.location.reload(true)
+        
+        })
+        .catch(err => alert(`Error Occured${err}`))
         
     }
 
 
     
-    componentDidMount() {
-        let userPolicies = []
-        
+    componentDidMount() {        
         console.log(this.contracts)
         this.contracts.genz.methods.getPolicyUser()
             .call()
@@ -125,7 +145,7 @@ class MyContracts extends Component {
 
     render() {
             // return (<h5>{this.props.accounts[0]}</h5>)
-            if ( this.state.policies.length==0 || !this.state.policies) {
+            if ( this.state.policies.length===0 || !this.state.policies) {
                 return <div style={{textAlign:"center"}}>No policies Found</div>
             } 
         else {

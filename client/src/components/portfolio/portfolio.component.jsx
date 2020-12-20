@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import './portfolio.styles.scss'
 import PropTypes from 'prop-types'
-import {drizzleConnect} from '@drizzle/react-plugin';
+
 
 const TableRow = ({policy, handleClaim }) => 
 (<tr>
@@ -15,7 +15,7 @@ const TableRow = ({policy, handleClaim }) =>
     <td>{policy[4][5]}</td>
     <td>{policy[4][6]}</td>
     <td>{policy[5]}</td>
-    <td>{policy[6]}</td>
+    <td>{policy[6]==0 ? "Open" : "Closed"}</td>
     {/* <td><button onClick={() => handleClaim(policy[0])}>Claim</button></td> */}
     {/* <td>{policy[11]}</td> */}
 </tr>)
@@ -42,8 +42,7 @@ class PortFolio extends Component {
 
     
     componentDidMount() {
-        let userPolicies = []
-        
+    
         console.log(this.contracts)
         this.contracts.genz.methods.getPolicyUser()
             .call()
@@ -72,9 +71,8 @@ class PortFolio extends Component {
        
 
     render() {
-            // return (<h5>{this.props.accounts[0]}</h5>)
-        if ( this.state.policies.length==0) {
-            return <div>Loading.....</div>
+        if ( this.state.policies.length===0) {
+            return <div>No Policies Found</div>
         }
         else {
             return (
@@ -96,7 +94,7 @@ class PortFolio extends Component {
                         </thead>
                         <tbody>
                             {
-                                this.state.policies.map( (policy, index) => <TableRow key={policy[4][0]} index={index} policy={policy}/>)
+                                this.state.policies.map( (policy, index) => <TableRow key={index} index={index} policy={policy}/>)
                             }
                         </tbody>
                     </table>
@@ -106,7 +104,7 @@ class PortFolio extends Component {
     }
 }
 
-PortFolio.contextTypes ={
+PortFolio.contextTypes = {
     drizzle : PropTypes.object
 }
 

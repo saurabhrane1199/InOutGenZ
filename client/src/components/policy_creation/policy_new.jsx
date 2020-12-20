@@ -3,7 +3,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 import { Form, InputGroup, FormControl, Button } from 'react-bootstrap';
 import PropTypes from 'prop-types'
-import {drizzleConnect} from '@drizzle/react-plugin'
+import {drizzleConnect} from '@drizzle/react-plugin';
+import {withRouter} from 'react-router-dom';
 
 
 class CreatePolicy extends Component {
@@ -17,11 +18,17 @@ class CreatePolicy extends Component {
             cropId: 0,
             duration: 0,
             premium:0,
+            coverage :0,
             stackId: null
         }
-        this.mf = {
+        this.mfP = {
             0 : 1,
             1 : 2
+        }
+
+        this.mfC = {
+            0 : 7,
+            1 : 10
         }
 
         this.contracts = context.drizzle.contracts
@@ -29,14 +36,21 @@ class CreatePolicy extends Component {
     }
 
     calcPremiumAmount(area, cropId){
-        return area*this.mf[cropId]
+        return area*this.mfP[cropId]
+    }
+    
+    calcCoverageAmount(area, cropId){
+        return area*this.mfC[cropId]
+
     }
 
     handleOnChangeArea = (e) => {
         const premium = this.calcPremiumAmount(e.target.value,this.state.cropId)
+        const coverage = this.calcCoverageAmount(e.target.value,this.state.cropId)
         this.setState({
             area: Number(e.target.value),
-            premium : premium
+            premium : premium,
+            coverage : coverage
         })
 
     }
@@ -62,9 +76,11 @@ class CreatePolicy extends Component {
 
     handleOnChangeCropId = (e) => {
         const premium = this.calcPremiumAmount(this.state.area,e.target.value)
+        const coverage = this.calcCoverageAmount(this.state.area,e.target.value)
         this.setState({
             cropId: Number(e.target.value),
-            premium : premium
+            premium : premium,
+            coverage : coverage
         })
     }
 
@@ -104,13 +120,13 @@ class CreatePolicy extends Component {
 
     setValue = () => {
         const {area,location,forFlood,cropId,duration} = this.state
-        const contract = this.contracts.genz;
-
-        const stackId = contract.methods["newPolicy"].cacheSend(area,forFlood,cropId,duration,location, {
+        this.contracts.genz.methods.newPolicy(area,forFlood,cropId,duration,location).send({
             from: this.props.accounts[0],
             value: (this.state.premium)
-        });
-        this.setState({ stackId });
+        })
+        .then(()=>this.props.navigateToContracts())
+        // .then(res => this.props.history.push('/kyc'));
+        
     }
 
     // int:area str:location bool:forFlood int:cropId int:Duration
@@ -161,11 +177,13 @@ class CreatePolicy extends Component {
                     <Button variant="primary" type="submit">Submit</Button>&nbsp;&nbsp;&nbsp;<Button variant="secondary" type="reset">Reset</Button>
                 </Form>
 
-                <div style={{padding:"20px", textAlign:"center"}}>
-                    {this.state.premium ? <h4>
+                <div style={{padding:"20px"}}>
+                    {this.state.premium ? <h5>
                         
-                        You need to pay the following premium to create this policy {this.state.premium}
-                    </h4> : <h4>Please enter valid details to calculate premium</h4>}
+                        Policy Details<br/>
+                        Premium :{' '}{this.state.premium}<br/>
+                        Coverage :{' '}{this.state.coverage}
+                    </h5> : <h4 style={{color:"red"}}>Please enter valid details to calculate premium</h4>}
                     
                 </div>
 
@@ -185,4 +203,4 @@ CreatePolicy.contextTypes ={
   
 
 
-export default drizzleConnect(CreatePolicy, mapStateToProps)
+export default withRouter(drizzleConnect(CreatePolicy, mapStateToProps))
